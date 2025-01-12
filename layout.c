@@ -75,11 +75,11 @@ static void publish_gesture(void)
 
 /* Lamps */
 
-static char buf_bedroom_color[16];
-static char buf_lounge_color[16];
-static char buf_dining_color[16];
-static char buf_kitchen_color[16];
-static char buf_all_bright[16];
+static char buf_bedroom_color[32];
+static char buf_lounge_color[32];
+static char buf_dining_color[32];
+static char buf_kitchen_color[32];
+static char buf_all_bright[32];
 
 static Lamp *lamp_cur = NULL;
 
@@ -88,11 +88,11 @@ static void sel_lounge(void);
 static void sel_dining(void);
 static void sel_kitchen(void);
 
-static Lamp c_bedroom = { 0, 0, COLOR_WHITE, "", buf_bedroom_color, sel_bedroom };
-static Lamp c_lounge = { 0, 0, COLOR_WHITE, "", buf_lounge_color, sel_lounge };
-static Lamp c_dining = { 0, 0, COLOR_WHITE, "", buf_dining_color, sel_dining };
-static Lamp c_kitchen = { 0, 0, COLOR_WHITE, "", buf_kitchen_color, sel_kitchen };
-static Lamp d_all = { 0, 0, COLOR_WHITE, "", buf_all_bright, NULL };
+static Lamp c_bedroom = { 550, 1350, COLOR_WHITE, "DMX Schlafzimmer", buf_bedroom_color, sel_bedroom };
+static Lamp c_lounge = { 1900, 400, COLOR_WHITE, "DMX Lounge", buf_lounge_color, sel_lounge };
+static Lamp c_dining = { 300, 300, COLOR_WHITE, "DMX Esszimmer", buf_dining_color, sel_dining };
+static Lamp c_kitchen = { 900, 420, COLOR_WHITE, "DMX Kueche", buf_kitchen_color, sel_kitchen };
+static Lamp d_all = { 800, 900, COLOR_WHITE, "Dali", buf_all_bright, NULL };
 
 static void sel_bedroom(void)
 {
@@ -118,18 +118,8 @@ static char buf_red[16] = "128", buf_green[16] = "128", buf_blue[16] = "128";
 static char buf_sel[64] = "Selected RGB Lamp: None";
 static char buf_bright[16] = "50";
 
-static void publish_color(void)
-{
-	if(!lamp_cur)
-	{
-		return;
-	}
-}
-
-static void publish_brightness(void)
-{
-
-}
+static void publish_color(void);
+static void publish_brightness(void);
 
 static void s_change_color(void);
 static void t_change_color(void);
@@ -155,6 +145,27 @@ static Textbox tb_bright = { 1750 + 110, 1325, 50, 0, 0, 0, buf_bright, t_change
 
 static Button btn_bright = { 1750, 1375, 200, 38, "Set Brightness", publish_brightness };
 
+static void publish_color(void)
+{
+	if(!lamp_cur)
+	{
+		return;
+	}
+
+	snprintf(lamp_cur->Bottom, 32, "[ %d, %d, %d ]",
+		sl_red.Value, sl_green.Value, sl_blue.Value);
+	
+	// TODO
+}
+
+static void publish_brightness(void)
+{
+	// TODO
+
+	snprintf(d_all.Bottom, 16, "[ %d ]",
+		sl_bright.Value);
+}
+
 static void s_change_color(void)
 {
 	textbox_set(&tb_red, snprintf(buf_red, sizeof(buf_red), "%d", sl_red.Value));
@@ -163,18 +174,29 @@ static void s_change_color(void)
 	textbox_set(&tb_bright, snprintf(buf_bright, sizeof(buf_bright), "%d", sl_bright.Value));
 }
 
-static void t_change_color(void)
+static i32 pchannel(const char *b)
 {
-	sl_red.Value = atoi(buf_red);
-	sl_green.Value = atoi(buf_green);
-	sl_blue.Value = atoi(buf_blue);
-	sl_bright.Value = atoi(buf_bright);
+	i32 n = atoi(b);
+	if(n < 0) { return 0; }
+	if(n > 255) { return 255; }
+	return n;
 }
 
-/* Curtains */
+static i32 pchannel100(const char *b)
+{
+	i32 n = atoi(b);
+	if(n < 0) { return 0; }
+	if(n > 100) { return 100; }
+	return n;
+}
 
-/* Heaters */
-
+static void t_change_color(void)
+{
+	sl_red.Value = pchannel(buf_red);
+	sl_green.Value = pchannel(buf_green);
+	sl_blue.Value = pchannel(buf_blue);
+	sl_bright.Value = pchannel100(buf_bright);
+}
 
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message)
 {
@@ -243,6 +265,8 @@ void layout_init(void)
 	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_bright);
 
 	gui_element_add(ELEMENT_TYPE_BUTTON, &btn_bright);
+
+	s_change_color();
 }
 
 void layout_render(void)

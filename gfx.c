@@ -238,6 +238,11 @@ static void render_copy(SDL_Rect *src, SDL_Rect *dst)
 	SDL_RenderCopy(_renderer, _font, src, &ndst);
 }
 
+static void zoom_change(void)
+{
+	// TODO?
+}
+
 static void handle_scroll(i32 y)
 {
 	if(y < 0)
@@ -258,6 +263,8 @@ static void handle_scroll(i32 y)
 		ox0 += mx - mx0;
 		oy0 += my - my0;
 	}
+
+	zoom_change();
 }
 
 void gfx_bg(void)
@@ -415,6 +422,7 @@ void gfx_main(const char *title)
 					zoom = 1;
 					ox0 = 0;
 					oy0 = 0;
+					zoom_change();
 					break;
 				
 				case SDLK_w:
