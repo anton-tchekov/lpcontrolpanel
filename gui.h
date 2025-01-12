@@ -12,7 +12,9 @@ typedef enum
 {
 	ELEMENT_TYPE_BUTTON,
 	ELEMENT_TYPE_TEXTBOX,
-	ELEMENT_TYPE_LABEL
+	ELEMENT_TYPE_LABEL,
+	ELEMENT_TYPE_LAMP,
+	ELEMENT_TYPE_SLIDER
 } ElementType;
 
 void gui_element_add(ElementType type, void *elem);

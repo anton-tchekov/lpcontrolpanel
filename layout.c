@@ -10,6 +10,7 @@
 #include "mqtt.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "millis.h"
 #include "util.h"
 #include "log.h"
@@ -73,11 +74,102 @@ static void publish_gesture(void)
 }
 
 /* Lamps */
-static Lamp c_bedroom = {};
-static Lamp c_lounge = {};
-static Lamp c_dining = {};
-static Lamp c_kitchen = {};
-static Lamp d_all = {};
+
+static char buf_bedroom_color[16];
+static char buf_lounge_color[16];
+static char buf_dining_color[16];
+static char buf_kitchen_color[16];
+static char buf_all_bright[16];
+
+static Lamp *lamp_cur = NULL;
+
+static void sel_bedroom(void);
+static void sel_lounge(void);
+static void sel_dining(void);
+static void sel_kitchen(void);
+
+static Lamp c_bedroom = { 0, 0, COLOR_WHITE, "", buf_bedroom_color, sel_bedroom };
+static Lamp c_lounge = { 0, 0, COLOR_WHITE, "", buf_lounge_color, sel_lounge };
+static Lamp c_dining = { 0, 0, COLOR_WHITE, "", buf_dining_color, sel_dining };
+static Lamp c_kitchen = { 0, 0, COLOR_WHITE, "", buf_kitchen_color, sel_kitchen };
+static Lamp d_all = { 0, 0, COLOR_WHITE, "", buf_all_bright, NULL };
+
+static void sel_bedroom(void)
+{
+	lamp_cur = &c_bedroom;
+}
+
+static void sel_lounge(void)
+{
+	lamp_cur = &c_lounge;
+}
+
+static void sel_dining(void)
+{
+	lamp_cur = &c_dining;
+}
+
+static void sel_kitchen(void)
+{
+	lamp_cur = &c_kitchen;
+}
+
+static char buf_red[16] = "128", buf_green[16] = "128", buf_blue[16] = "128";
+static char buf_sel[64] = "Selected RGB Lamp: None";
+static char buf_bright[16] = "50";
+
+static void publish_color(void)
+{
+	if(!lamp_cur)
+	{
+		return;
+	}
+}
+
+static void publish_brightness(void)
+{
+
+}
+
+static void s_change_color(void);
+static void t_change_color(void);
+
+static Label lbl_sel = { 1750, 900, 0, buf_sel };
+static Label lbl_red = { 1750, 925, 0, "Red:" };
+static Slider sl_red = { 1750, 950, 255, 128, s_change_color };
+static Textbox tb_red = { 1750 + 265, 950, 50, 0, 0, 0, buf_red, t_change_color };
+
+static Label lbl_green = { 1750, 1000, 0, "Green:" };
+static Slider sl_green = { 1750, 1025, 255, 128, s_change_color };
+static Textbox tb_green = { 1750 + 265, 1025, 50, 0, 0, 0, buf_green, t_change_color };
+
+static Label lbl_blue = { 1750, 1075, 0, "Blue:" };
+static Slider sl_blue = { 1750, 1100, 255, 128, s_change_color };
+static Textbox tb_blue = { 1750 + 265, 1100, 50, 0, 0, 0, buf_blue, t_change_color };
+
+static Button btn_rgb = { 1750, 1150, 200, 38, "Set Color", publish_color };
+
+static Label lbl_bright = { 1750, 1300, 0, "Brightness:" };
+static Slider sl_bright = { 1750, 1325, 100, 50, s_change_color };
+static Textbox tb_bright = { 1750 + 110, 1325, 50, 0, 0, 0, buf_bright, t_change_color };
+
+static Button btn_bright = { 1750, 1375, 200, 38, "Set Brightness", publish_brightness };
+
+static void s_change_color(void)
+{
+	textbox_set(&tb_red, snprintf(buf_red, sizeof(buf_red), "%d", sl_red.Value));
+	textbox_set(&tb_green, snprintf(buf_green, sizeof(buf_green), "%d", sl_green.Value));
+	textbox_set(&tb_blue, snprintf(buf_blue, sizeof(buf_blue), "%d", sl_blue.Value));
+	textbox_set(&tb_bright, snprintf(buf_bright, sizeof(buf_bright), "%d", sl_bright.Value));
+}
+
+static void t_change_color(void)
+{
+	sl_red.Value = atoi(buf_red);
+	sl_green.Value = atoi(buf_green);
+	sl_blue.Value = atoi(buf_blue);
+	sl_bright.Value = atoi(buf_bright);
+}
 
 /* Curtains */
 
@@ -112,7 +204,7 @@ void layout_init(void)
 {
 	gui_element_add(ELEMENT_TYPE_LABEL, &label_framerate);
 
-	tb_addr.Length = tb_addr.Selection = tb_addr.Position = strlen(buf_addr);
+	textbox_set(&tb_addr, strlen(buf_addr));
 	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_addr);
 	gui_element_add(ELEMENT_TYPE_BUTTON, &button_connect);
 
@@ -126,6 +218,31 @@ void layout_init(void)
 	gui_element_add(ELEMENT_TYPE_LABEL, &lbl_sendgesture);
 	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_gesture);
 	gui_element_add(ELEMENT_TYPE_BUTTON, &btn_gesture);
+
+	gui_element_add(ELEMENT_TYPE_LAMP, &c_bedroom);
+	gui_element_add(ELEMENT_TYPE_LAMP, &c_lounge);
+	gui_element_add(ELEMENT_TYPE_LAMP, &c_dining);
+	gui_element_add(ELEMENT_TYPE_LAMP, &c_kitchen);
+	gui_element_add(ELEMENT_TYPE_LAMP, &d_all);
+
+	gui_element_add(ELEMENT_TYPE_LABEL, &lbl_sel);
+	gui_element_add(ELEMENT_TYPE_LABEL, &lbl_red);
+	gui_element_add(ELEMENT_TYPE_SLIDER, &sl_red);
+	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_red);
+	gui_element_add(ELEMENT_TYPE_LABEL, &lbl_green);
+	gui_element_add(ELEMENT_TYPE_SLIDER, &sl_green);
+	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_green);
+	gui_element_add(ELEMENT_TYPE_LABEL, &lbl_blue);
+	gui_element_add(ELEMENT_TYPE_SLIDER, &sl_blue);
+	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_blue);
+
+	gui_element_add(ELEMENT_TYPE_BUTTON, &btn_rgb);
+
+	gui_element_add(ELEMENT_TYPE_LABEL, &lbl_bright);
+	gui_element_add(ELEMENT_TYPE_SLIDER, &sl_bright);
+	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_bright);
+
+	gui_element_add(ELEMENT_TYPE_BUTTON, &btn_bright);
 }
 
 void layout_render(void)

@@ -349,3 +349,8 @@ i32 textbox_bounds(Textbox *e, i32 x, i32 y)
 {
 	return x >= e->X && y >= e->Y && x < e->X + e->W && y < e->Y + INPUT_HEIGHT;
 }
+
+void textbox_set(Textbox *t, i32 len)
+{
+	t->Length = t->Selection = t->Position = len;
+}

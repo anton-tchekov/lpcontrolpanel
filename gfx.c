@@ -418,27 +418,19 @@ void gfx_main(const char *title)
 					break;
 				
 				case SDLK_w:
-					oy0 += zoom;
+					oy0 += zoom * 100;
 					break;
 				
 				case SDLK_a:
-					ox0 += zoom;
+					ox0 += zoom * 100;
 					break;
 				
 				case SDLK_s:
-					oy0 -= zoom;
+					oy0 -= zoom * 100;
 					break;
 				
 				case SDLK_d:
-					ox0 -= zoom;
-					break;
-				
-				case SDLK_SPACE:
-					zoom /= 1.25;
-					break;
-				
-				case SDLK_LSHIFT:
-					zoom *= 1.25;
+					ox0 -= zoom * 100;
 					break;
 				}
 				break;

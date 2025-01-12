@@ -41,6 +41,14 @@ void gui_element_add(ElementType type, void *elem)
 	case ELEMENT_TYPE_LABEL:
 		e->L = elem;
 		break;
+	
+	case ELEMENT_TYPE_LAMP:
+		e->A = elem;
+		break;
+	
+	case ELEMENT_TYPE_SLIDER:
+		e->S = elem;
+		break;
 	}
 
 	++Count;
@@ -60,6 +68,14 @@ static void element_render(Element *e, u32 flags)
 
 	case ELEMENT_TYPE_TEXTBOX:
 		textbox_render(e->T, flags);
+		break;
+
+	case ELEMENT_TYPE_LAMP:
+		lamp_render(e->A, flags);
+		break;
+
+	case ELEMENT_TYPE_SLIDER:
+		slider_render(e->S, flags);
 		break;
 	}
 }
@@ -84,6 +100,12 @@ static i32 element_hover(Element *e, i32 x, i32 y)
 
 	case ELEMENT_TYPE_TEXTBOX:
 		return textbox_bounds(e->T, x, y);
+
+	case ELEMENT_TYPE_SLIDER:
+		return slider_bounds(e->S, x, y);
+
+	case ELEMENT_TYPE_LAMP:
+		return lamp_bounds(e->A, x, y);
 
 	default:
 		break;
@@ -132,6 +154,14 @@ i32 gui_mousedown(i32 x, i32 y)
 	else if(ce->Type == ELEMENT_TYPE_TEXTBOX)
 	{
 		textbox_click(ce->T, x);
+	}
+	else if(ce->Type == ELEMENT_TYPE_SLIDER)
+	{
+		slider_click(ce->S, x);
+	}
+	else if(ce->Type == ELEMENT_TYPE_LAMP)
+	{
+		lamp_click(ce->A);
 	}
 
 	return 0;

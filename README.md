@@ -7,4 +7,6 @@
 - Three Sliders, textboxes, and Labels
 
 - Curtains & Heaters
+
 - Windows Version
+- Github & Backups

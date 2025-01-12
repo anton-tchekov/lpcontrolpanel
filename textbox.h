@@ -15,5 +15,6 @@ void textbox_render(Textbox *i, u32 flags);
 i32 textbox_bounds(Textbox *e, i32 x, i32 y);
 void textbox_click(Textbox *i, i32 x);
 void textbox_event_key(Textbox *i, u32 key, u32 chr);
+void textbox_set(Textbox *t, i32 len);
 
 #endif

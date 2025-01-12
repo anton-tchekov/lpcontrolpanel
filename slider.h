@@ -7,9 +7,11 @@ typedef struct SLIDER
 {
 	i32 X, Y, W;
 	i32 Value;
-	void (*OnChange)(struct SLIDER *slider);
+	void (*OnChange)(void);
 } Slider;
 
-void slider_render(Slider *slider);
+void slider_render(Slider *slider, u32 flags);
+void slider_click(Slider *slider, i32 x);
+i32 slider_bounds(Slider *s, i32 x, i32 y);
 
 #endif
