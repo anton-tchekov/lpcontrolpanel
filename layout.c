@@ -24,11 +24,26 @@ static char str_framerate[64];
 static Label label_framerate = { 0, -30, ALIGN_LEFT, str_framerate };
 
 /* Connection */
-static char buf_addr[64] = "127.0.0.1:1883";
+static char buf_addr[64] = "127.0.0.1:1883"; // "192.168.167.50:1901"
 
 static const char *topics[] =
 {
-	"lp/gesture"
+	"lp/gesture",
+	"lp/dali",
+	"lp/schlafzimmer/dmx/set",
+	"lp/schlafzimmer/dmx/color/set",
+	"lp/esszimmer/dmx/set",
+	"lp/esszimmer/dmx/color/set",
+	"lp/kueche/dmx/set",
+	"lp/kueche/dmx/color/set",
+	"lp/lounge/dmx/set",
+	"lp/lounge/dmx/color/set",
+	"lp/lounge/vorhang/set",
+	"lp/lounge/vorhang/status",
+	"lp/schlafzimmer/vorhang/set",
+	"lp/schlafzimmer/vorhang/status",
+	"lp/flur/vorhang/set",
+	"lp/flur/vorhang/status",
 };
 
 static void connect(void)
@@ -37,20 +52,33 @@ static void connect(void)
 	mqtt_connect(buf_addr, topics, ARRLEN(topics), msgarrvd);
 }
 
+static void b_connect(void *tag)
+{
+	connect();
+	(void)tag;
+}
+
 static Textbox tb_addr = { 0, -100, 300, 0, 0, 0, buf_addr, connect };
-static Button button_connect = { 310, -100, 200, 38, "LP MQTT Connect", connect };
+static Button button_connect = { 310, -100, 200, 38, "LP MQTT Connect", b_connect, NULL };
 
 /* MQTT Toolbox */
 static char buf_topic[64];
 static char buf_value[64];
 
 static void publish(void);
+static void b_publish(void *);
 
 static Label lbl_topic = { -300, 50, ALIGN_LEFT, "Topic:" };
 static Textbox tb_topic = { -300, 75, 290, 0, 0, 0, buf_topic, NULL };
 static Label lbl_value = { -300, 125, ALIGN_LEFT, "Value:" };
 static Textbox tb_value = { -300, 150, 290, 0, 0, 0, buf_value, publish };
-static Button btn_publish = { -300, 200, 290, 38, "Publish", publish };
+static Button btn_publish = { -300, 200, 290, 38, "Publish", b_publish, NULL };
+
+static void b_publish(void *tag)
+{
+	publish();
+	(void)tag;
+}
 
 static void publish(void)
 {
@@ -61,16 +89,23 @@ static void publish(void)
 static char buf_send_gesture[64];
 static char buf_recv_gesture[64] = "Last gesture: ???";
 
+static void b_publish_gesture(void *);
 static void publish_gesture(void);
 
 static Label lbl_lastgesture = { -300, 300, ALIGN_LEFT, buf_recv_gesture };
 static Label lbl_sendgesture = { -300, 325, ALIGN_LEFT, "Send on `lp/gesture`:" };
 static Textbox tb_gesture = { -300, 350, 290, 0, 0, 0, buf_send_gesture, publish_gesture };
-static Button btn_gesture = { -300, 400, 290, 38, "Publish Gesture", publish_gesture };
+static Button btn_gesture = { -300, 400, 290, 38, "Publish Gesture", b_publish_gesture, NULL };
 
 static void publish_gesture(void)
 {
 	mqtt_publish("lp/gesture", buf_send_gesture, tb_gesture.Length);
+}
+
+static void b_publish_gesture(void *tag)
+{
+	publish_gesture();
+	(void)tag;
 }
 
 /* Lamps */
@@ -94,32 +129,42 @@ static Lamp c_dining = { 300, 300, COLOR_WHITE, "DMX Esszimmer", buf_dining_colo
 static Lamp c_kitchen = { 900, 420, COLOR_WHITE, "DMX Kueche", buf_kitchen_color, sel_kitchen };
 static Lamp d_all = { 800, 900, COLOR_WHITE, "Dali", buf_all_bright, NULL };
 
+static char buf_sel[64] = "Selected Lamp: None";
+
+static void lamp_sel(const char *name)
+{
+	snprintf(buf_sel, sizeof(buf_sel), "Selected Lamp: %s", name);
+}
+
 static void sel_bedroom(void)
 {
 	lamp_cur = &c_bedroom;
+	lamp_sel("Schlafzimmer");
 }
 
 static void sel_lounge(void)
 {
 	lamp_cur = &c_lounge;
+	lamp_sel("Lounge");
 }
 
 static void sel_dining(void)
 {
 	lamp_cur = &c_dining;
+	lamp_sel("Esszimmer");
 }
 
 static void sel_kitchen(void)
 {
 	lamp_cur = &c_kitchen;
+	lamp_sel("Kueche");
 }
 
 static char buf_red[16] = "128", buf_green[16] = "128", buf_blue[16] = "128";
-static char buf_sel[64] = "Selected RGB Lamp: None";
 static char buf_bright[16] = "50";
 
-static void publish_color(void);
-static void publish_brightness(void);
+static void publish_color(void *);
+static void publish_brightness(void *);
 
 static void s_change_color(void);
 static void t_change_color(void);
@@ -137,15 +182,15 @@ static Label lbl_blue = { 1750, 1075, 0, "Blue:" };
 static Slider sl_blue = { 1750, 1100, 255, 128, s_change_color };
 static Textbox tb_blue = { 1750 + 265, 1100, 50, 0, 0, 0, buf_blue, t_change_color };
 
-static Button btn_rgb = { 1750, 1150, 200, 38, "Set Color", publish_color };
+static Button btn_rgb = { 1750, 1150, 200, 38, "Set Color", publish_color, NULL };
 
 static Label lbl_bright = { 1750, 1300, 0, "Brightness:" };
 static Slider sl_bright = { 1750, 1325, 100, 50, s_change_color };
 static Textbox tb_bright = { 1750 + 110, 1325, 50, 0, 0, 0, buf_bright, t_change_color };
 
-static Button btn_bright = { 1750, 1375, 200, 38, "Set Brightness", publish_brightness };
+static Button btn_bright = { 1750, 1375, 200, 38, "Set Brightness", publish_brightness, NULL };
 
-static void publish_color(void)
+static void publish_color(void *tag)
 {
 	if(!lamp_cur)
 	{
@@ -156,14 +201,18 @@ static void publish_color(void)
 		sl_red.Value, sl_green.Value, sl_blue.Value);
 	
 	// TODO
+
+	(void)tag;
 }
 
-static void publish_brightness(void)
+static void publish_brightness(void *tag)
 {
 	// TODO
 
 	snprintf(d_all.Bottom, 16, "[ %d ]",
 		sl_bright.Value);
+	
+	(void)tag;
 }
 
 static void s_change_color(void)
@@ -198,6 +247,91 @@ static void t_change_color(void)
 	sl_bright.Value = pchannel100(buf_bright);
 }
 
+void handle_msg(char *topic, char *msg, int len)
+{
+	if(!strcmp(topic, "lp/gesture"))
+	{
+		snprintf(buf_recv_gesture, sizeof(buf_recv_gesture),
+			"Last gesture: %.*s", len, msg);
+		return;
+	}
+
+	if(!strcmp(topic, "lp/dali"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/schlafzimmer/dmx/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/schlafzimmer/dmx/color/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/esszimmer/dmx/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/esszimmer/dmx/color/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/kueche/dmx/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/kueche/dmx/color/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/lounge/dmx/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/lounge/dmx/color/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/lounge/vorhang/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/lounge/vorhang/status"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/schlafzimmer/vorhang/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/schlafzimmer/vorhang/status"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/flur/vorhang/set"))
+	{
+
+	}
+
+	if(!strcmp(topic, "lp/flur/vorhang/status"))
+	{
+
+	}
+}
+
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message)
 {
 	if(topicLen != 0)
@@ -210,16 +344,82 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
 	log_debug("Received message `%.*s` on topic `%s`",
 		message->payloadlen, (char *)message->payload, topicName);
 
-	if(!strcmp(topicName, "lp/gesture"))
-	{
-		snprintf(buf_recv_gesture, sizeof(buf_recv_gesture),
-			"Last gesture: %.*s", message->payloadlen, (char *)message->payload);
-	}
+	handle_msg(topicName, (char *)message->payload, message->payloadlen);
 
 	MQTTClient_freeMessage(&message);
 	MQTTClient_free(topicName);
 	return 1;
 	(void)context;
+}
+
+void publish_half(const char *topic)
+{
+	mqtt_publish(buf_topic, "HALF", 4);
+}
+
+void publish_open(const char *topic)
+{
+	mqtt_publish(buf_topic, "OPEN", 4);
+}
+
+void publish_close(const char *topic)
+{
+	mqtt_publish(buf_topic, "CLOSE", 4);
+}
+
+void click_open(void *tag)
+{
+
+}
+
+void click_half(void *tag)
+{
+	
+}
+
+void click_close(void *tag)
+{
+	
+}
+
+void gencuco(i32 x, i32 y, const char *topic)
+{
+	Label *label = malloc(sizeof(Label));
+	label->X = x;
+	label->Y = y;
+	label->Align = 0;
+	label->Text = topic;
+	gui_element_add(ELEMENT_TYPE_LABEL, label);
+
+	Button *btn_open = malloc(sizeof(Button));
+	btn_open->X = x;
+	btn_open->Y = y + 25;
+	btn_open->W = 80;
+	btn_open->H = 38;
+	btn_open->Text = "Open";
+	btn_open->Click = click_open;
+	btn_open->Tag = NULL;
+	gui_element_add(ELEMENT_TYPE_BUTTON, btn_open);
+
+	Button *btn_half = malloc(sizeof(Button));
+	btn_half->X = x + 90;
+	btn_half->Y = y + 25;
+	btn_half->W = 80;
+	btn_half->H = 38;
+	btn_half->Text = "Half";
+	btn_half->Click = click_half;
+	btn_half->Tag = NULL;
+	gui_element_add(ELEMENT_TYPE_BUTTON, btn_half);
+
+	Button *btn_close = malloc(sizeof(Button));
+	btn_close->X = x + 180;
+	btn_close->Y = y + 25;
+	btn_close->W = 80;
+	btn_close->H = 38;
+	btn_close->Text = "Close";
+	btn_close->Click = click_close;
+	btn_close->Tag = NULL;
+	gui_element_add(ELEMENT_TYPE_BUTTON, btn_close);
 }
 
 void layout_init(void)
@@ -265,6 +465,10 @@ void layout_init(void)
 	gui_element_add(ELEMENT_TYPE_TEXTBOX, &tb_bright);
 
 	gui_element_add(ELEMENT_TYPE_BUTTON, &btn_bright);
+
+	gencuco(1800, 600, "lp/lounge/vorhang/");
+	gencuco(400, 1000, "lp/flur/vorhang/");
+	gencuco(400, 1900, "lp/schlafzimmer/vorhang/");
 
 	s_change_color();
 }

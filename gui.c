@@ -148,7 +148,7 @@ i32 gui_mousedown(i32 x, i32 y)
 		Button *b = ce->B;
 		if(b->Click)
 		{
-			b->Click();
+			b->Click(b->Tag);
 		}
 	}
 	else if(ce->Type == ELEMENT_TYPE_TEXTBOX)

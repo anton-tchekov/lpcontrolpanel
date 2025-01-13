@@ -7,7 +7,8 @@ typedef struct BUTTON
 {
 	i32 X, Y, W, H;
 	char *Text;
-	void (*Click)(void);
+	void (*Click)(void *);
+	void *Tag;
 } Button;
 
 void button_render(Button *button, u32 flags);

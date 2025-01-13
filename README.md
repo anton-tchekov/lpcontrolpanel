@@ -2,6 +2,5 @@
 
 ## TODO
 
-- Publish/Subscript Lamp Color
-- Heater
-- Curtain
+1. Publish/Subscript Lamp Color
+2. Curtain
