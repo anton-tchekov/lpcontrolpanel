@@ -15,5 +15,8 @@ i32 gfx_string_width(const char *s);
 i32 gfx_string_width_len(const char *s, i32 len);
 void gfx_bg(void);
 u32 gfx_color(i32 r, i32 g, i32 b);
+i32 color_r(u32 color);
+i32 color_g(u32 color);
+i32 color_b(u32 color);
 
 #endif

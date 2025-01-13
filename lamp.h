@@ -13,9 +13,9 @@ typedef struct
 } Lamp;
 
 void lamp_render(Lamp *lamp, u32 flags);
-void lamp_setrgb(Lamp *lamp);
+void lamp_setrgb(Lamp *lamp, u32 color);
 i32 lamp_bounds(Lamp *lamp, i32 x, i32 y);
 void lamp_click(Lamp *lamp);
-void lamp_setbrightness(Lamp *lamp);
+void lamp_setbrightness(Lamp *lamp, i32 value);
 
 #endif

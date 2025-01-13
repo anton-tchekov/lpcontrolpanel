@@ -44,7 +44,8 @@ static char buf_addr[64] = "127.0.0.1:1883"; // "192.168.167.50:1901"
 static const char *topics[] =
 {
 	"lp/gesture",
-	"lp/dali",
+	"lp/dali/set",
+	"lp/dali/status",
 	"lp/schlafzimmer/dmx/set",
 	"lp/schlafzimmer/dmx/color/set",
 	"lp/esszimmer/dmx/set",
@@ -261,6 +262,13 @@ static void t_change_color(void)
 	sl_bright.Value = pchannel100(buf_bright);
 }
 
+u32 extractcolor(const char *msg)
+{
+	int r, g, b;
+	sscanf(msg, "%d,%d,%d", &r, &g, &b);
+	return gfx_color(r, g, b);
+}
+
 void handle_msg(char *topic, char *msg, int len)
 {
 	if(!strcmp(topic, "lp/gesture"))
@@ -274,50 +282,63 @@ void handle_msg(char *topic, char *msg, int len)
 	msg[len] = '\0';
 
 	/* ---------- LAMPEN ----------- */
-	if(!strcmp(topic, "lp/dali"))
-	{snprintf(d_all.Bottom, 16, "[ %d ]",
-		sl_bright.Value);
+	if(!strcmp(topic, "lp/dali/set"))
+	{
+		lamp_setbrightness(&d_all, atoi(msg));
+		return;
+	}
+
+	if(!strcmp(topic, "lp/dali/status"))
+	{
+		lamp_setbrightness(&d_all, atoi(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/dmx/set"))
-	{snprintf(lamp_cur->Bottom, 32, "[ %d, %d, %d ]",
-		sl_red.Value, sl_green.Value, sl_blue.Value);
+	{
+		lamp_setrgb(&c_bedroom, extractcolor(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/dmx/color/set"))
 	{
+		lamp_setrgb(&c_bedroom, extractcolor(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/esszimmer/dmx/set"))
 	{
+		lamp_setrgb(&c_dining, extractcolor(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/esszimmer/dmx/color/set"))
 	{
+		lamp_setrgb(&c_dining, extractcolor(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/kueche/dmx/set"))
 	{
+		lamp_setrgb(&c_kitchen, extractcolor(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/kueche/dmx/color/set"))
 	{
+		lamp_setrgb(&c_kitchen, extractcolor(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/lounge/dmx/set"))
 	{
+		lamp_setrgb(&c_lounge, extractcolor(msg));
 		return;
 	}
 
 	if(!strcmp(topic, "lp/lounge/dmx/color/set"))
 	{
+		lamp_setrgb(&c_lounge, extractcolor(msg));
 		return;
 	}
 

@@ -182,17 +182,17 @@ static void gfx_destroy(void)
 	SDL_Quit();
 }
 
-static u32 color_r(u32 color)
+i32 color_r(u32 color)
 {
 	return (color >> 16) & 0xFF;
 }
 
-static u32 color_g(u32 color)
+i32 color_g(u32 color)
 {
 	return (color >> 8) & 0xFF;
 }
 
-static u32 color_b(u32 color)
+i32 color_b(u32 color)
 {
 	return color & 0xFF;
 }

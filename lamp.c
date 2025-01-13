@@ -2,6 +2,7 @@
 #include "gfx.h"
 #include "theme.h"
 #include "gui.h"
+#include <stdio.h>
 
 #define LAMP_SIZE 80
 
@@ -36,4 +37,19 @@ void lamp_click(Lamp *lamp)
 	{
 		lamp->Click();
 	}
+}
+
+void lamp_setrgb(Lamp *lamp, u32 color)
+{
+	snprintf(lamp->Bottom, 32, "[ %d, %d, %d ]",
+		color_r(color), color_g(color), color_b(color));
+	lamp->Color = color;
+}
+
+void lamp_setbrightness(Lamp *lamp, i32 value)
+{
+	double vf = value / 100.0 * 255.0;
+	snprintf(lamp->Bottom, 16, "[ %d ]", value);
+	value = vf;
+	lamp->Color = gfx_color(value, value, value);
 }
