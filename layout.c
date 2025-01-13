@@ -138,11 +138,11 @@ static void sel_lounge(void);
 static void sel_dining(void);
 static void sel_kitchen(void);
 
-static Lamp c_bedroom = { 550, 1350, COLOR_WHITE, "DMX Schlafzimmer", buf_bedroom_color, sel_bedroom };
-static Lamp c_lounge = { 1900, 400, COLOR_WHITE, "DMX Lounge", buf_lounge_color, sel_lounge };
-static Lamp c_dining = { 300, 300, COLOR_WHITE, "DMX Esszimmer", buf_dining_color, sel_dining };
-static Lamp c_kitchen = { 900, 420, COLOR_WHITE, "DMX Kueche", buf_kitchen_color, sel_kitchen };
-static Lamp d_all = { 800, 900, COLOR_WHITE, "Dali", buf_all_bright, NULL };
+static Lamp c_bedroom = { 550, 1350, COLOR_WHITE, "lp/schlafzimmer/dmx/", "DMX Schlafzimmer", buf_bedroom_color, sel_bedroom };
+static Lamp c_lounge = { 1900, 400, COLOR_WHITE, "lp/lounge/dmx/", "DMX Lounge", buf_lounge_color, sel_lounge };
+static Lamp c_dining = { 300, 300, COLOR_WHITE, "lp/esszimmer/dmx/", "DMX Esszimmer", buf_dining_color, sel_dining };
+static Lamp c_kitchen = { 900, 420, COLOR_WHITE, "lp/kueche/dmx/", "DMX Kueche", buf_kitchen_color, sel_kitchen };
+static Lamp d_all = { 800, 900, COLOR_WHITE, "lp/dali/", "Dali", buf_all_bright, NULL };
 
 static char buf_sel[64] = "Selected Lamp: None";
 
@@ -212,21 +212,20 @@ static void publish_color(void *tag)
 		return;
 	}
 
-	snprintf(lamp_cur->Bottom, 32, "[ %d, %d, %d ]",
+	char buf[64];
+	int len = snprintf(buf, sizeof(buf), "%d,%d,%d",
 		sl_red.Value, sl_green.Value, sl_blue.Value);
-	
-	// TODO
-
+	char tpbuf[64];
+	snprintf(tpbuf, sizeof(tpbuf), "%scolor/set", lamp_cur->Topic);
+	mqtt_publish(tpbuf, buf, len);
 	(void)tag;
 }
 
 static void publish_brightness(void *tag)
 {
-	// TODO
-
-	snprintf(d_all.Bottom, 16, "[ %d ]",
-		sl_bright.Value);
-	
+	char buf[64];
+	int len = snprintf(buf, sizeof(buf), "%d", sl_bright.Value);
+	mqtt_publish("lp/dali/set", buf, len);
 	(void)tag;
 }
 
@@ -276,12 +275,14 @@ void handle_msg(char *topic, char *msg, int len)
 
 	/* ---------- LAMPEN ----------- */
 	if(!strcmp(topic, "lp/dali"))
-	{
+	{snprintf(d_all.Bottom, 16, "[ %d ]",
+		sl_bright.Value);
 		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/dmx/set"))
-	{
+	{snprintf(lamp_cur->Bottom, 32, "[ %d, %d, %d ]",
+		sl_red.Value, sl_green.Value, sl_blue.Value);
 		return;
 	}
 

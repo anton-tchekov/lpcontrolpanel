@@ -7,6 +7,7 @@ typedef struct
 {
 	i32 X, Y;
 	u32 Color;
+	char *Topic;
 	char *Top, *Bottom;
 	void (*Click)(void);
 } Lamp;
