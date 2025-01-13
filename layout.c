@@ -271,6 +271,9 @@ void handle_msg(char *topic, char *msg, int len)
 		return;
 	}
 
+	if(len > 13) { return; }
+	msg[len] = '\0';
+
 	/* ---------- LAMPEN ----------- */
 	if(!strcmp(topic, "lp/dali"))
 	{
@@ -320,31 +323,43 @@ void handle_msg(char *topic, char *msg, int len)
 	/* ---------- VORHANG ----------- */
 	if(!strcmp(topic, "lp/lounge/vorhang/set"))
 	{
+		strcpy(tag_vlounge->Set, msg);
+		ct_format(tag_vlounge);
 		return;
 	}
 
 	if(!strcmp(topic, "lp/lounge/vorhang/status"))
 	{
+		strcpy(tag_vlounge->Status, msg);
+		ct_format(tag_vlounge);
 		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/vorhang/set"))
 	{
+		strcpy(tag_vbed->Set, msg);
+		ct_format(tag_vbed);
 		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/vorhang/status"))
 	{
+		strcpy(tag_vbed->Status, msg);
+		ct_format(tag_vbed);
 		return;
 	}
 
 	if(!strcmp(topic, "lp/flur/vorhang/set"))
 	{
+		strcpy(tag_vflur->Set, msg);
+		ct_format(tag_vflur);
 		return;
 	}
 
 	if(!strcmp(topic, "lp/flur/vorhang/status"))
 	{
+		strcpy(tag_vflur->Status, msg);
+		ct_format(tag_vflur);
 		return;
 	}
 }
