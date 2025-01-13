@@ -15,6 +15,21 @@
 #include "util.h"
 #include "log.h"
 
+typedef struct
+{
+	char *Buf;
+	const char *Topic;
+	char Set[16];
+	char Status[16];
+} CurtainTag;
+
+CurtainTag *tag_vlounge, *tag_vflur, *tag_vbed;
+
+void ct_format(CurtainTag *ct)
+{
+	snprintf(ct->Buf, 256, "%s : %s / %s", ct->Topic, ct->Set, ct->Status);
+}
+
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message);
 
 /* Framerate Label */
@@ -256,79 +271,81 @@ void handle_msg(char *topic, char *msg, int len)
 		return;
 	}
 
+	/* ---------- LAMPEN ----------- */
 	if(!strcmp(topic, "lp/dali"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/dmx/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/dmx/color/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/esszimmer/dmx/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/esszimmer/dmx/color/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/kueche/dmx/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/kueche/dmx/color/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/lounge/dmx/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/lounge/dmx/color/set"))
 	{
-
+		return;
 	}
 
+	/* ---------- VORHANG ----------- */
 	if(!strcmp(topic, "lp/lounge/vorhang/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/lounge/vorhang/status"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/vorhang/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/schlafzimmer/vorhang/status"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/flur/vorhang/set"))
 	{
-
+		return;
 	}
 
 	if(!strcmp(topic, "lp/flur/vorhang/status"))
 	{
-
+		return;
 	}
 }
 
@@ -352,43 +369,46 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
 	(void)context;
 }
 
-void publish_half(const char *topic)
-{
-	mqtt_publish(buf_topic, "HALF", 4);
-}
 
-void publish_open(const char *topic)
+void curtainpubl(const char *topic, char *val)
 {
-	mqtt_publish(buf_topic, "OPEN", 4);
-}
-
-void publish_close(const char *topic)
-{
-	mqtt_publish(buf_topic, "CLOSE", 4);
+	char buf[128];
+	snprintf(buf, sizeof(buf), "%sset", topic);
+	mqtt_publish(buf, val, strlen(val));
 }
 
 void click_open(void *tag)
 {
-
+	CurtainTag *ct = tag;
+	curtainpubl(ct->Topic, "OPEN");
 }
 
 void click_half(void *tag)
 {
-	
+	CurtainTag *ct = tag;
+	curtainpubl(ct->Topic, "HALF");
 }
 
 void click_close(void *tag)
 {
-	
+	CurtainTag *ct = tag;
+	curtainpubl(ct->Topic, "CLOSE");
 }
 
-void gencuco(i32 x, i32 y, const char *topic)
+CurtainTag *gencuco(i32 x, i32 y, const char *topic)
 {
+	CurtainTag *tag = malloc(sizeof(CurtainTag));
+	tag->Buf = malloc(256);
+	strcpy(tag->Set, "UNKNOWN");
+	strcpy(tag->Status, "UNKNOWN");
+	tag->Topic = topic;
+	ct_format(tag);
+
 	Label *label = malloc(sizeof(Label));
 	label->X = x;
 	label->Y = y;
 	label->Align = 0;
-	label->Text = topic;
+	label->Text = tag->Buf;
 	gui_element_add(ELEMENT_TYPE_LABEL, label);
 
 	Button *btn_open = malloc(sizeof(Button));
@@ -398,7 +418,7 @@ void gencuco(i32 x, i32 y, const char *topic)
 	btn_open->H = 38;
 	btn_open->Text = "Open";
 	btn_open->Click = click_open;
-	btn_open->Tag = NULL;
+	btn_open->Tag = tag;
 	gui_element_add(ELEMENT_TYPE_BUTTON, btn_open);
 
 	Button *btn_half = malloc(sizeof(Button));
@@ -408,7 +428,7 @@ void gencuco(i32 x, i32 y, const char *topic)
 	btn_half->H = 38;
 	btn_half->Text = "Half";
 	btn_half->Click = click_half;
-	btn_half->Tag = NULL;
+	btn_half->Tag = tag;
 	gui_element_add(ELEMENT_TYPE_BUTTON, btn_half);
 
 	Button *btn_close = malloc(sizeof(Button));
@@ -418,8 +438,10 @@ void gencuco(i32 x, i32 y, const char *topic)
 	btn_close->H = 38;
 	btn_close->Text = "Close";
 	btn_close->Click = click_close;
-	btn_close->Tag = NULL;
+	btn_close->Tag = tag;
 	gui_element_add(ELEMENT_TYPE_BUTTON, btn_close);
+
+	return tag;
 }
 
 void layout_init(void)
@@ -466,9 +488,9 @@ void layout_init(void)
 
 	gui_element_add(ELEMENT_TYPE_BUTTON, &btn_bright);
 
-	gencuco(1800, 600, "lp/lounge/vorhang/");
-	gencuco(400, 1000, "lp/flur/vorhang/");
-	gencuco(400, 1900, "lp/schlafzimmer/vorhang/");
+	tag_vlounge = gencuco(1800, 600, "lp/lounge/vorhang/");
+	tag_vflur = gencuco(400, 1000, "lp/flur/vorhang/");
+	tag_vbed = gencuco(400, 1900, "lp/schlafzimmer/vorhang/");
 
 	s_change_color();
 }
