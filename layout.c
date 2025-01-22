@@ -14,6 +14,8 @@
 #include "millis.h"
 #include "util.h"
 #include "log.h"
+#include <unistd.h>
+#include <SDL2/SDL.h>
 
 typedef struct
 {
@@ -39,7 +41,7 @@ static char str_framerate[64];
 static Label label_framerate = { 0, -30, ALIGN_LEFT, str_framerate };
 
 /* Connection */
-static char buf_addr[64] = "127.0.0.1:1883"; // "192.168.167.50:1901"
+static char buf_addr[64] = "192.168.167.50:1901"; // "127.0.0.1:1883"; // 
 
 static const char *topics[] =
 {
@@ -89,6 +91,11 @@ static Textbox tb_topic = { -300, 75, 290, 0, 0, 0, buf_topic, NULL };
 static Label lbl_value = { -300, 125, ALIGN_LEFT, "Value:" };
 static Textbox tb_value = { -300, 150, 290, 0, 0, 0, buf_value, publish };
 static Button btn_publish = { -300, 200, 290, 38, "Publish", b_publish, NULL };
+
+static void blitz(void *);
+
+static Button btn_blitz = { 0, 0, 290, 38, "BLITZ", blitz, NULL };
+
 
 static void b_publish(void *tag)
 {
@@ -219,6 +226,25 @@ static void publish_color(void *tag)
 	char tpbuf[64];
 	snprintf(tpbuf, sizeof(tpbuf), "%scolor/set", lamp_cur->Topic);
 	mqtt_publish(tpbuf, buf, len);
+	(void)tag;
+}
+
+static void blitz(void *tag)
+{
+	char buf[64] = "255,255,0";
+	int len = strlen(buf);
+	mqtt_publish("lp/lounge/dmx/color/set", buf, len);
+	mqtt_publish("lp/schlafzimmer/dmx/color/set", buf, len);
+	mqtt_publish("lp/esszimmer/dmx/color/set", buf, len);
+	mqtt_publish("lp/kueche/dmx/color/set", buf, len);
+	SDL_Delay(200);
+
+	strcpy(buf, "0,0,0");
+	len = strlen(buf);
+	mqtt_publish("lp/lounge/dmx/color/set", buf, len);
+	mqtt_publish("lp/schlafzimmer/dmx/color/set", buf, len);
+	mqtt_publish("lp/esszimmer/dmx/color/set", buf, len);
+	mqtt_publish("lp/kueche/dmx/color/set", buf, len);
 	(void)tag;
 }
 
@@ -528,6 +554,8 @@ void layout_init(void)
 	tag_vlounge = gencuco(1800, 600, "lp/lounge/vorhang/");
 	tag_vflur = gencuco(400, 1000, "lp/flur/vorhang/");
 	tag_vbed = gencuco(400, 1900, "lp/schlafzimmer/vorhang/");
+	
+	gui_element_add(ELEMENT_TYPE_BUTTON, &btn_blitz);
 
 	s_change_color();
 }
